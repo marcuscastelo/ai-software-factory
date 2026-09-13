@@ -158,6 +158,42 @@ class ConsumerTests(Fixture):
         self.assertNotIn("--no-worktree", argv)
         self.assertNotIn("provider-must-never-run", self.trace.read_text())
 
+    def test_project_required_inputs_are_injected_and_cannot_be_overridden(self):
+        required = {
+            name: {"post_ready_checks": "CodeRabbit"}
+            for name in ("archon-ship", "archon-deliver", "archon-lifecycle")
+        }
+        configure(self.app, {**self.settings, "required_workflow_inputs": required})
+        for workflow in required:
+            with self.subTest(workflow=workflow):
+                result = self.command("run", workflow, "--", "keep message text")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                argv = json.loads(result.stdout)["argv"]
+                boundary = argv.index("--")
+                self.assertEqual(
+                    argv[boundary - 2:boundary],
+                    ["--input", "post_ready_checks=CodeRabbit"],
+                )
+        result = self.command(
+            "run", "archon-ship", "--input", "post_ready_checks=", "--json"
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("requires archon-ship input post_ready_checks=CodeRabbit", result.stderr)
+
+    def test_matching_required_input_is_not_duplicated(self):
+        configure(self.app, {
+            **self.settings,
+            "required_workflow_inputs": {
+                "archon-ship": {"post_ready_checks": "CodeRabbit"}
+            },
+        })
+        result = self.command(
+            "run", "archon-ship", "--input=post_ready_checks=CodeRabbit", "--json"
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        argv = json.loads(result.stdout)["argv"]
+        self.assertEqual(argv.count("--input=post_ready_checks=CodeRabbit"), 1)
+
     def test_future_source_workflow_needs_no_alias(self):
         result = self.command("run", "archon-future-queue", "--input", "candidate=pr:1")
         self.assertEqual(result.returncode, 0, result.stderr)

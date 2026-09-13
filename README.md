@@ -92,6 +92,19 @@ point; use model identifiers supported by the installed provider and the user's 
 All factory AI work must run through the shared SDLC workflows. Do not add direct
 coding-agent subprocesses to factory scripts or create factory-local workflow copies.
 
+When a repository has a check that starts only after a draft PR becomes ready,
+declare it for every delivery entrypoint in the ignored
+`.factory/consumer.json`. The consumer injects these inputs and refuses an
+override, so a manual launch and a future scheduled launch have the same gate:
+
+```json
+"required_workflow_inputs": {
+  "archon-ship": {"post_ready_checks": "CodeRabbit"},
+  "archon-deliver": {"post_ready_checks": "CodeRabbit"},
+  "archon-lifecycle": {"post_ready_checks": "CodeRabbit"}
+}
+```
+
 **3. Write the three files with them.**
 
 The repo holds either an application or only a product document (a PRD). The
