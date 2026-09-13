@@ -37,7 +37,7 @@ Leave scheduling off until we have watched one issue go through the factory.
 That is the install. It clones this, runs the installer, then walks you through
 the three files nobody can write for you.
 
-**You need:** git, Python 3.10+, [`gh`](https://cli.github.com) authenticated with the
+**You need:** git, Python 3.10+, [`gh`](https://cli.github.com) 2.100.0+ authenticated with the
 `workflow` scope (`gh auth login -s workflow`, then `gh auth setup-git` so git itself
 can push, including CI workflow files), a GitHub remote, a coding agent,
 [`bun`](https://bun.sh) and [`uv`](https://docs.astral.sh/uv/).
