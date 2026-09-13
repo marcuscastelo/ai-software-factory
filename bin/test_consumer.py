@@ -343,6 +343,17 @@ class ConsumerTests(Fixture):
 
 
 class InstallTests(Fixture):
+    def test_reconfigure_preserves_project_required_workflow_inputs(self):
+        required = {
+            "archon-ship": {"post_ready_checks": "CodeRabbit"},
+            "archon-deliver": {"post_ready_checks": "CodeRabbit"},
+        }
+        configure(self.app, {**self.settings, "required_workflow_inputs": required})
+        configure(self.app, {**self.settings, "revision": "f" * 40})
+        configured = json.loads((self.app / consumer.SETTINGS).read_text())
+        self.assertEqual(configured["revision"], "f" * 40)
+        self.assertEqual(configured["required_workflow_inputs"], required)
+
     def test_upgrade_preserves_personal_files_and_backs_up_execution_surfaces(self):
         originals = {"factory/config.py": b"AUTONOMY=4\r\n", "harness/harness.config.json": b'{"agent":{"cmd":"do not run"}}',
                      "harness/END-TO-END.md": b"custom journey\r\n", ".factory/holdout/HOLDOUT.md": b"private scenario\n",

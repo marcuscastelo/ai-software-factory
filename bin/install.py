@@ -124,6 +124,13 @@ def install_source(repository: str, revision: str, cache: Path, bun: str) -> dic
 def configure(root: Path, settings: dict) -> None:
     path = within(consumer.shared_root(root), consumer.shared_root(root) / consumer.SETTINGS)
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.is_file():
+        existing = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(existing, dict) and "required_workflow_inputs" in existing:
+            settings = {
+                **settings,
+                "required_workflow_inputs": existing["required_workflow_inputs"],
+            }
     temp = path.with_suffix(".tmp")
     temp.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")
     temp.replace(path)
